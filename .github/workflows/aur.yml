@@ -1,4 +1,4 @@
-name: Push to AUR
+name: Push to AUR (dry run)
 
 on:
   workflow_dispatch:
@@ -42,6 +42,20 @@ jobs:
 
               chown -R 1001:1001 /pkg
             "
+          echo "=========================================="
+          echo "VERIFYING UPDATED PKGBUILD:"
+          echo "=========================================="
+          cat arch/PKGBUILD
+          
+          echo -e "\n=========================================="
+          echo "VERIFYING UPDATED .SRCINFO:"
+          echo "=========================================="
+          cat arch/.SRCINFO
+          
+          echo -e "\n=========================================="
+          echo "GIT DIFF SUMMARY:"
+          echo "=========================================="
+          git diff arch/PKGBUILD
 
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
