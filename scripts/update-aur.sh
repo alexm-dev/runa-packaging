@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-SCRIPT_DIR=$(pwd)
-EXPECTED_DIR="arch"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ARCH_DIR="$(dirname "$SCRIPT_DIR")/arch"
+PKGBUILD_PATH="$ARCH_DIR/PKGBUILD"
 
-if [[ "$(basename "$SCRIPT_DIR")" != "$EXPECTED_DIR" ]]; then
-    echo "Error: This script must be run from the '$EXPECTED_DIR/' directory inside runa-packaging."
+if [[ ! -f "$PKGBUILD_PATH" ]]; then
+    echo "Error: Could not find PKGBUILD at $PKGBUILD_PATH"
+    echo "Ensure your repo structure is: root/arch/PKGBUILD and root/scripts/$(basename "$0")"
     exit 1
 fi
 
@@ -22,6 +24,8 @@ usage() {
 if [ -z "$NEW_VER" ]; then
     usage
 fi
+
+cd "$ARCH_DIR"
 
 if [[ ! "$NEW_VER" =~ ^[0-9]+(\.[0-9]+)*([a-zA-Z0-9]+)?$ ]]; then
     echo "Error: Invalid version '$NEW_VER'. Must be digits and dots only (optional letters/numbers)."
