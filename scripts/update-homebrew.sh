@@ -20,12 +20,10 @@ if [ $? -ne 0 ] || [ -z "$SHASUMS_DATA" ]; then
     exit 1
 fi
 
-# 1. Update the Version string
-# Matches: version "0.5.12"
+# Update the Version string
 sed -i -E "s/(version \")[0-9.]+(\")/\1$NEW_VERSION\2/" "$FORMULA_PATH"
 
-# 2. Update Hashes for each architecture
-# We loop through the architectures and find the matching hash in the curl data
+# Update Hashes for each architecture
 ARCHS=("macos-x86_64" "macos-aarch64" "linux-x86_64" "linux-aarch64")
 
 for ARCH in "${ARCHS[@]}"; do
