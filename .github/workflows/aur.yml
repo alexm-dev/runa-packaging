@@ -23,7 +23,7 @@ jobs:
           echo "Target version: $CLEAN_VER"
 
           docker run --rm \
-            -v "$(pwd):/pkg" \
+            -v "$(pwd)/arch:/pkg" \
             -w /pkg \
             -e CLEAN_VER="$CLEAN_VER" \
             archlinux:latest bash -c "
