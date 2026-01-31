@@ -17,15 +17,24 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Generate .SRCINFO in Docker
+      - name: Update PKGBUILD and Generate .SRCINFO
         run: |
+          CLEAN_VER=$(echo "${{ github.event.inputs.tag }}" | sed 's/^v//;s/^v\.//')
+
           docker run --rm -v "$PWD:/pkg" -w /pkg archlinux:latest bash -c "
             set -e
             pacman -Sy --noconfirm pacman-contrib sudo
             useradd -m builduser
             echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
             chown -R builduser:builduser /pkg
+
+            sed -i \"s/^pkgver=.*/pkgver=\$CLEAN_VER/\" PKGBUILD
+            sed -i \"s/^pkgrel=.*/pkgrel=1/\" PKGBUILD
+
+            sudo -u builduser updpkgsums
+
             sudo -u builduser makepkg --printsrcinfo > .SRCINFO
+
             chown -R 1001:1001 /pkg
           "
 
