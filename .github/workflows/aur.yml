@@ -19,32 +19,32 @@ jobs:
 
       - name: Update PKGBUILD and Generate .SRCINFO
         run: |
-          CLEAN_VER=$(echo "${{ github.event.inputs.tag }}" | sed 's/^v//;s/^v\.//')
+          CLEAN_VER=$(echo "${{ github.event.inputs.tag }}" | sed 's/^v//;s/^\.//')
+          echo "Target version: $CLEAN_VER"
 
-          docker run --rm -v "$PWD:/pkg" -w /pkg archlinux:latest bash -c "
-            set -e
-            pacman -Sy --noconfirm pacman-contrib sudo
-            useradd -m builduser
-            echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-            chown -R builduser:builduser /pkg
+          docker run --rm \
+            -v "$(pwd):/pkg" \
+            -w /pkg \
+            -e CLEAN_VER="$CLEAN_VER" \
+            archlinux:latest bash -c "
+              set -e
 
-            sed -i \"s/^pkgver=.*/pkgver=\$CLEAN_VER/\" PKGBUILD
-            sed -i \"s/^pkgrel=.*/pkgrel=1/\" PKGBUILD
+              pacman -Sy --noconfirm pacman-contrib sudo
 
-            sudo -u builduser updpkgsums
+              useradd -m builduser
+              echo 'builduser ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
-            sudo -u builduser makepkg --printsrcinfo > .SRCINFO
+              chown -R builduser:builduser /pkg
 
-            chown -R 1001:1001 /pkg
+              sed -i \"s/^pkgver=.*/pkgver=\$CLEAN_VER/\" PKGBUILD
+              sed -i \"s/^pkgrel=.*/pkgrel=1/\" PKGBUILD
 
-            echo "--- RESULTING PKGBUILD ---"
-            cat PKGBUILD
-            echo "--- RESULTING .SRCINFO ---"
-            cat .SRCINFO
+              sudo -u builduser updpkgsums
 
-          "
-          echo "--- GIT STATUS ---"
-          git diff
+              sudo -u builduser makepkg --printsrcinfo > .SRCINFO
+
+              chown -R 1001:1001 /pkg
+            "
 
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
