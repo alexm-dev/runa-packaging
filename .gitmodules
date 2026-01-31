@@ -1,6 +1,0 @@
-[submodule "homebrew-tap"]
-	path = homebrew-tap
-	url = https://github.com/alexm-dev/homebrew-tap
-[submodule "scoop-bucket"]
-	path = scoop-bucket
-	url = https://github.com/alexm-dev/scoop-bucket
