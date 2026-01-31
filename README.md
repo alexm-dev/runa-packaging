@@ -1,6 +1,6 @@
 # runa-packaging
 
-Packagigng repo for managaging different package options for runa.
+Packagigng repo for managaging different package options for [runa](https://github.com/alexm-dev/runa).
 
 ## License
 This project is dual licensed under the MIT OR Apache-2.0 license.  
