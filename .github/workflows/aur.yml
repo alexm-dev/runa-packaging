@@ -35,7 +35,7 @@ jobs:
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
 
           git clone "ssh://aur@aur.archlinux.org/runa.git" aur_clone
-          cp PKGBUILD .SRCINFO aur_clone/
+          cp arch/PKGBUILD arch/.SRCINFO aur_clone/
           cd aur_clone
           git config user.name "runa CI (CI automation)"
           git config user.email "runa-ci@proton.me"
