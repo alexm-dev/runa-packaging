@@ -24,7 +24,7 @@ fi
 sed -i -E "s/(version \")[0-9.]+(\")/\1$NEW_VERSION\2/" "$FORMULA_PATH"
 
 # Update Hashes for each architecture
-ARCHS=("macos-x86_64" "macos-aarch64" "linux-x86_64" "linux-aarch64")
+ARCHS=("macos-x86_64" "macos-aarch64" "linux-x86_64-gnu" "linux-aarch64-gnu")
 
 for ARCH in "${ARCHS[@]}"; do
     HASH=$(echo "$SHASUMS_DATA" | grep "runa-$ARCH.tar.gz" | awk '{print $1}')
