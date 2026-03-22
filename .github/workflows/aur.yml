@@ -13,7 +13,7 @@ jobs:
     if: github.repository == 'alexm-dev/runa-packaging' && github.actor == 'alexm-dev' && startsWith(github.event.inputs.tag, 'v')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
 
