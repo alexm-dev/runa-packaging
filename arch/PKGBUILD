@@ -36,6 +36,7 @@ package() {
     cd "$pkgname-$pkgver"
     install -Dm755 target/release/rn -t "$pkgdir/usr/bin/"
     install -Dm644 LICENSE-{MIT,APACHE} -t "$pkgdir/usr/share/licenses/$pkgname/"
+    install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 docs/config/configuration.md -t "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 docs/config/config-reference/{display,editor,general,keys,theme}.md -t "$pkgdir/usr/share/doc/$pkgname/config-reference/"
 }
