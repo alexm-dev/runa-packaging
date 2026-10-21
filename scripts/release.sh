@@ -6,14 +6,6 @@
 #
 # Run it in a clean clone on main. With the version that is already packaged,
 # it only verifies the packages and changes nothing.
-#
-# Every value it writes comes from the release, after these checks:
-#   - the tag is a commit on runa's main branch
-#   - every asset is attested by runa's release workflow for that tag and commit
-#   - the AUR source archive contains that same commit
-#
-# It asks twice: before committing and before pushing. GitHub is pushed with
-# git's ssh, the AUR with the key for aur.archlinux.org in ~/.ssh/config.
 
 set -euo pipefail
 
@@ -371,7 +363,6 @@ commit_all() {
     commit "$TMP/aur" "Update to $TAG" PKGBUILD .SRCINFO
 }
 
-# Pushes a branch with the given ssh command and checks that the remote has the commit.
 push() {
     local dir=$1 branch=$2 ssh=$3
     git -C "$dir" -c core.sshCommand="$ssh" push -q origin "$branch"
@@ -383,7 +374,6 @@ push() {
     echo "Pushed $dir"
 }
 
-# Pushes the AUR first: its clone is temporary, so if it fails nothing is published.
 push_all() {
     local github_ssh aur_ssh
     github_ssh="$(git config core.sshCommand || echo ssh) -o StrictHostKeyChecking=yes"
