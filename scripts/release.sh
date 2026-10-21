@@ -42,6 +42,8 @@ TAG=""
 TMP=""
 COMMIT=""
 ARCHIVE_SUM=""
+PACKAGED_VERSION=""
+PKGREL=""
 HINT=""
 declare -A SUM
 
@@ -119,10 +121,10 @@ check_package_files() {
         ! grep -q $'\r' -- "$file" || fail "$file has CRLF line endings"
     done
 
-    local current newest
-    current=$(sed -n 's/^pkgver=//p' "$PKGBUILD")
-    newest=$(printf '%s\n' "$current" "$VERSION" | sort -V | tail -n 1)
-    [[ $newest == "$VERSION" ]] || fail "$VERSION is older than the packaged $current"
+    local newest
+    PACKAGED_VERSION=$(sed -n 's/^pkgver=//p' "$PKGBUILD")
+    newest=$(printf '%s\n' "$PACKAGED_VERSION" "$VERSION" | sort -V | tail -n 1)
+    [[ $newest == "$VERSION" ]] || fail "$VERSION is older than the packaged $PACKAGED_VERSION"
 
     # updpkgsums runs the PKGBUILD, so it must still download runa's tag archive
     local line
@@ -205,8 +207,13 @@ verify_assets() {
 }
 
 # Updates the PKGBUILD with the official tools and checks the downloaded archive.
+# A new version starts at pkgrel 1, the packaged version keeps its pkgrel.
 update_aur() {
-    sed -i -e "s/^pkgver=.*/pkgver=$VERSION/" -e "s/^pkgrel=.*/pkgrel=1/" "$PKGBUILD"
+    if [[ $VERSION != "$PACKAGED_VERSION" ]]; then
+        sed -i -e "s/^pkgver=.*/pkgver=$VERSION/" -e "s/^pkgrel=.*/pkgrel=1/" "$PKGBUILD"
+    fi
+    PKGREL=$(sed -n 's/^pkgrel=//p' "$PKGBUILD")
+    [[ $PKGREL =~ ^[1-9][0-9]*$ ]] || fail "PKGBUILD has an invalid pkgrel: $PKGREL"
 
     mkdir -- "$TMP/src"
     (
@@ -259,12 +266,12 @@ update_scoop() {
 
 verify_aur() {
     local line
-    for line in "pkgver=$VERSION" "pkgrel=1" "sha256sums=('$ARCHIVE_SUM')"; do
+    for line in "pkgver=$VERSION" "pkgrel=$PKGREL" "sha256sums=('$ARCHIVE_SUM')"; do
         grep -qFx -- "$line" "$PKGBUILD" || fail "PKGBUILD is missing the line: $line"
     done
     for line in \
         "pkgver = $VERSION" \
-        "pkgrel = 1" \
+        "pkgrel = $PKGREL" \
         "sha256sums = $ARCHIVE_SUM" \
         "source = runa-$VERSION.tar.gz::https://github.com/$REPO/archive/$TAG.tar.gz"; do
         grep -qFx -- $'\t'"$line" "$SRCINFO" || fail ".SRCINFO is missing the line: $line"
@@ -423,6 +430,9 @@ main() {
     step "Verifying the release assets"
     verify_assets
 
+    local discard="git restore arch && git -C homebrew restore . && git -C scoop restore ."
+    HINT="Discard the changes with: $discard"
+
     step "Updating the packages"
     update_aur
     update_homebrew
@@ -444,10 +454,8 @@ main() {
     git -C homebrew --no-pager diff
     git -C scoop --no-pager diff
 
-    local discard="git restore arch && git -C homebrew restore . && git -C scoop restore ."
     echo
-    confirm "Type $VERSION to commit: " "$VERSION" ||
-        fail "not committed. Discard the changes with: $discard"
+    confirm "Type $VERSION to commit: " "$VERSION" || fail "not committed"
 
     HINT="Nothing is pushed. Undo the commits in each repository with: git reset --keep origin/main"
     step "Committing"
