@@ -142,7 +142,8 @@ check_package_files() {
     done
 }
 
-# Clones the AUR package and checks that it equals arch/.
+# Clones the AUR package and checks that it equals arch/ at a commit on main.
+# Changes to arch/ after that commit ship with the release.
 check_aur() {
     local aur=$TMP/aur
     git clone -q --no-tags -- "$AUR_URL" "$aur"
@@ -152,11 +153,21 @@ check_aur() {
     [[ $(git -C "$aur" ls-files | tr '\n' ' ') == ".SRCINFO PKGBUILD " ]] ||
         fail "the AUR has unexpected files"
 
-    local file
-    for file in PKGBUILD .SRCINFO; do
-        cmp -s -- "$aur/$file" "arch/$file" || fail "the AUR $file differs from arch/$file"
+    local key
+    for key in pkgver pkgrel; do
+        [[ $(grep "^$key=" "$aur/PKGBUILD") == "$(grep "^$key=" "$PKGBUILD")" ]] ||
+            fail "the AUR $key differs from arch/PKGBUILD"
     done
-    echo "The AUR equals arch/"
+
+    local commit
+    while IFS= read -r commit; do
+        if cmp -s -- "$aur/PKGBUILD" <(git show "$commit:$PKGBUILD" 2>/dev/null) &&
+            cmp -s -- "$aur/.SRCINFO" <(git show "$commit:$SRCINFO" 2>/dev/null); then
+            echo "The AUR equals arch/ at $(git --no-pager log --oneline -1 "$commit")"
+            return
+        fi
+    done < <(git rev-list HEAD -- arch)
+    fail "the AUR does not equal arch/ at any commit on main"
 }
 
 # Checks that the release is published and that its tag is a commit on main.
